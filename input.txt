@@ -1,0 +1,12 @@
+name:="DEZ";
+surname:="MONWA";
+number:=12;kiss:=21
+
+if(larger(12,2))
+{
+    output(name)
+}
+else
+{
+    output(surname)
+}
