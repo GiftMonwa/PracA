@@ -59,95 +59,134 @@ public class Parser {
 
     public void ProcDefs()
     {
+        xml+="<ProcDefs>";
+
+        xml+="</ProcDefs>";
     }
 
     public void Algorithm()
     {
-
+        xml+="<Algorith>";
+        
+        xml+="</Algorithm>";
     }
 
     public void VarDecl()
     {
-
+        xml+="<VarDecl>";
+        
+        xml+="</VarDecl>";
     }
 
     public void PD()
     {
-
+        xml+="<PD>";
+        
+        xml+="</PD>";
     }
 
     public void Instr()
     {
-
+        xml+="<Instr>";
+        
+        xml+="</Instr>";
     }
 
     public void Assign()
     {
-
+        xml+="<Assign>";
+        
+        xml+="</Assign>";
     }
 
     public void Branch()
     {
-
+        xml+="<Branch>";
+        
+        xml+="</Branch>";
     }
 
     public void Loop()
     {
-
+        xml+="<Loop>";
+        
+        xml+="</Loop>";
     }
 
     public void PCall()
     {
-
+        xml+="<PCall>";
+        
+        xml+="</PCall>";
     }
 
     public void LHS()
     {
-
+        xml+="<LHS>";
+        
+        xml+="</LHS>";
     }
 
     public void Expr()
     {
-
+        xml+="<Expr>";
+        
+        xml+="</Expr>";
     }
 
     public void Alternat()
     {
-
+        xml+="<Alternat>";
+        
+        xml+="</Alternat>";
     }
 
     public void Var()
     {
-
+        xml+="<Var>";
+        
+        xml+="</Var>";
     }
 
     public void Field()
     {
-
+        xml+="<Field>";
+        
+        xml+="</Field>";
     }
 
     public void Const()
     {
-
+        xml+="<Const>";
+        
+        xml+="</Const>";
     }
 
     public void UnOp()
     {
-
+        xml+="<UnOp>";
+        
+        xml+="</UnOp>";
     }
 
     public void BinOp()
     {
-
+        xml+="<BinOp>";
+        
+        xml+="</BinOp>";
     }
 
     public void Dec()
     {
-
+        xml+="<Dec>";
+        
+        xml+="</Dec>";
     }
 
     public void TYP()
     {
-
+        xml+="<TYP>";
+        
+        xml+="</TYP>";
     }
 }
