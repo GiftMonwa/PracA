@@ -28,12 +28,14 @@ public class Parser {
     Document doc;
     ArrayList<Element> elements=new ArrayList<>();
     String xml;   //The xml buffer
+    static int index=0;
 
     Parser(ArrayList<token> e) throws Exception
     {  
         dFactory=DocumentBuilderFactory.newInstance();
         dBuilder=dFactory.newDocumentBuilder();
-        doc = dBuilder.newDocument(); 
+        doc = dBuilder.newDocument();
+         
         for(token i: e)
         {
             tList.add(i);
@@ -45,13 +47,39 @@ public class Parser {
         xml+="<SPLProgr>";
         if(!tList.isEmpty())
         {
-            if(tList.get(0).contents=="proc")
+            if(tList.get(index).contents=="proc")  //checking if Procdef is null
             {
                 ProcDefs();
             }
-            else if(tList.get(0).contents=="main")
+            else if(tList.get(index).contents=="main")
             {
-                
+                xml+="main";
+                index++; //The next token that follows main
+                lCurly();   //left Curly bracket
+                Algorithm();  //Parse Algorith
+
+                if(tList.get(index).contents=="halt")
+                {
+                    xml+="halt";
+                }
+                else{
+                    System.out.println("SYNTAX ERROR");
+                    return;
+                }
+
+                index++;
+
+                semiColon();
+
+                VarDecl();
+
+                index++;
+                Rcurly();
+            }
+            else
+            {
+                System.out.print("SYNTAX ERROR");
+                return;
             }
         }
         xml+="</SPLProgr";
@@ -60,6 +88,16 @@ public class Parser {
     public void ProcDefs()
     {
         xml+="<ProcDefs>";
+        PD();
+        
+        index++;
+        Comma();  //check if the next input is  a comma
+
+        index++;
+        if(tList.get(index).contents=="proc")
+        {
+            ProcDefs();
+        } //If its null we continue
 
         xml+="</ProcDefs>";
     }
@@ -189,4 +227,123 @@ public class Parser {
         
         xml+="</TYP>";
     }
+
+
+    public void lCurly()
+    {
+        if(tList.get(index).contents=="{")  //Left curly
+        {
+            xml+="{";
+        }
+        else{
+                System.out.println("SYNTAX ERROR");
+                return;
+        }
+    }
+
+    public void Rcurly()
+    {
+        if(tList.get(index).contents=="}")  //Left curly
+        {
+            xml+="}";
+        }
+        else{
+            System.out.println("SYNTAX ERROR");
+            return;
+        }
+    }
+
+    public void Comma()
+    {
+        if(tList.get(index).contents==",")  //Left curly
+        {
+            xml+=",";
+        }
+        else
+        {
+            System.out.println("SYNTAX ERROR");
+            return;
+        }
+    }
+
+    public void lParenth()
+    {
+        if(tList.get(index).contents=="(")  //Left curly
+        {
+            xml+="(";
+        }
+        else
+        {
+            System.out.println("SYNTAX ERROR");
+            return;
+        }
+    }
+
+    public void rParenth()
+    {
+        if(tList.get(index).contents==")")  //Left curly
+        {
+            xml+=")";
+        }
+        else
+        {
+            System.out.println("SYNTAX ERROR");
+            return;
+        }
+    }
+
+    public void lBracket()
+    {
+        if(tList.get(index).contents=="[")  //Left curly
+        {
+            xml+="[";
+        }
+        else
+        {
+            System.out.println("SYNTAX ERROR");
+            return;
+        }
+    }
+
+    public void rBracket()
+    {
+        if(tList.get(index).contents=="]")  //Left curly
+        {
+            xml+="]";
+        }
+        else
+        {
+            System.out.println("SYNTAX ERROR");
+            return;
+        }
+    }
+
+    public void semiColon()
+    {
+        if(tList.get(index).contents==";")  //Left curly
+        {
+            xml+=";";
+        }
+        else
+        {
+            System.out.println("SYNTAX ERROR");
+            return;
+        }
+    }
+
+    public void Variable()
+    {
+        if(tList.get(index).Class=="var")  //A variable name
+        {
+            xml+=tList.get(index).contents;
+            index++;
+        }
+        else
+        {
+            System.out.print("SYNTAX ERROR");
+            return;
+        }
+    }
+
+
 }
