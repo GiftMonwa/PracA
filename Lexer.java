@@ -257,4 +257,10 @@ public class Lexer{
             System.out.println(i.Class+" "+i.contents);
         }
     }
+
+    public void Parser(ArrayList<token> a)
+    {
+        
+    }
+    
 }
