@@ -56,8 +56,9 @@ public class Parser {
                 xml+="main";
                 index++; //The next token that follows main
                 lCurly();   //left Curly bracket
-                Algorithm();  //Parse Algorith
-
+                index++;
+                isAlgorithm();  //Parse Algorithm
+                index++;
                 if(tList.get(index).contents=="halt")
                 {
                     xml+="halt";
@@ -70,9 +71,8 @@ public class Parser {
                 index++;
 
                 semiColon();
-
+                index++;
                 VarDecl();
-
                 index++;
                 Rcurly();
             }
@@ -119,6 +119,44 @@ public class Parser {
     public void PD()
     {
         xml+="<PD>";
+        if(tList.get(index).contents=="proc")
+        {
+            xml+="proc";   
+        }
+        else
+        {
+            System.out.println("SYNTAX ERROR");
+        }
+        
+        index++;
+        Variable();  //Adding a userDefined variable
+        
+        index++;
+        lCurly();
+
+
+        index++;
+        if(tList.get(index).contents=="proc")  //Check if procdefs is null
+        {
+            ProcDefs();   
+        }
+
+        index++;
+        isAlgorithm();  //Checks if we have an Algorithm before it passes
+        index++;
+
+        if(tList.get(index).contents=="return")
+        {
+            xml+="return";
+        }
+        else{
+            System.out.println("SYNTAX ERROR");
+        }
+
+        index++;
+        semiColon();
+        index++;
+
         
         xml+="</PD>";
     }
@@ -229,6 +267,8 @@ public class Parser {
     }
 
 
+
+    //Adding Terminals
     public void lCurly()
     {
         if(tList.get(index).contents=="{")  //Left curly
@@ -342,6 +382,24 @@ public class Parser {
         {
             System.out.print("SYNTAX ERROR");
             return;
+        }
+    }
+
+
+    //Helper Functions
+    public void isAlgorithm()
+    {
+        if(tList.get(index).contents=="output" || tList.get(index).contents=="if" || tList.get(index).contents=="do" || tList.get(index).contents=="while" || tList.get(index).contents=="call" || tList.get(index).Class=="var")
+        {
+            Algorithm();;
+        }
+    }
+
+    public void isDeclaration()
+    {
+        if(tList.get(index).contents=="string" || tList.get(index).contents=="num" || tList.get(index).contents=="bool" || tList.get(index).contents=="arr")
+        {
+            VarDecl();
         }
     }
 
