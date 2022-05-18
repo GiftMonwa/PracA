@@ -47,34 +47,39 @@ public class Parser {
         xml+="<SPLProgr>";
         if(!tList.isEmpty())
         {
-            if(tList.get(index).contents=="proc")  //checking if Procdef is null
+            if(index<tList.size() && tList.get(index).contents=="proc")  //checking if Procdef is null
             {
                 ProcDefs();
             }
-            else if(tList.get(index).contents=="main")
+
+            index++;
+
+            if(index<tList.size() && tList.get(index).contents=="main")
             {
                 xml+="main";
                 index++; //The next token that follows main
-                lCurly();   //left Curly bracket
+                if(lCurly()){}  //if there's no curly bracket its a syntax error
+                else{return;};   //left Curly bracket
+
                 index++;
                 isAlgorithm();  //Parse Algorithm
                 index++;
-                if(tList.get(index).contents=="halt")
+                if(index<tList.size() && tList.get(index).contents=="halt")
                 {
                     xml+="halt";
                 }
                 else{
-                    System.out.println("SYNTAX ERROR");
+                    System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
                     return;
                 }
 
                 index++;
 
-                semiColon();
+                if(semiColon()){}else{return;};
                 index++;
-                VarDecl();
+                if(Variable()){}else{return;};
                 index++;
-                Rcurly();
+                if(Rcurly()){}else{return;};
             }
             else
             {
@@ -85,21 +90,21 @@ public class Parser {
         xml+="</SPLProgr";
     }
 
-    public void ProcDefs()
+    public boolean ProcDefs()
     {
         xml+="<ProcDefs>";
-        PD();
+        if(PD()){}else{return false;};
         
         index++;
-        Comma();  //check if the next input is  a comma
+        if(Comma()){}else{return false;};  //check if the next input is  a comma
 
         index++;
-        if(tList.get(index).contents=="proc")
+        if(index<tList.size() && tList.get(index).contents=="proc")
         {
             ProcDefs();
         } //If its null we continue
-
         xml+="</ProcDefs>";
+        return true;
     }
 
     public void Algorithm()
@@ -109,34 +114,40 @@ public class Parser {
         xml+="</Algorithm>";
     }
 
-    public void VarDecl()
+    public boolean VarDecl()
     {
         xml+="<VarDecl>";
-        
+        if(Dec()){}else{return false;}
+        index++;
+        if(semiColon()){}else{return false;}
+        index++;
+        if(VarDecl()){};
         xml+="</VarDecl>";
+        return true;
     }
 
-    public void PD()
+    public boolean PD()
     {
         xml+="<PD>";
-        if(tList.get(index).contents=="proc")
+        if(index<tList.size() && tList.get(index).contents=="proc")
         {
             xml+="proc";   
         }
         else
         {
-            System.out.println("SYNTAX ERROR");
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            return false;
+            
         }
         
         index++;
-        Variable();  //Adding a userDefined variable
+        if(Variable()){}else{return false;};  //Adding a userDefined variable
         
         index++;
-        lCurly();
-
+        if(lCurly()){}else{return false;};
 
         index++;
-        if(tList.get(index).contents=="proc")  //Check if procdefs is null
+        if(index<tList.size() && tList.get(index).contents=="proc")  //Check if procdefs is null
         {
             ProcDefs();   
         }
@@ -145,19 +156,20 @@ public class Parser {
         isAlgorithm();  //Checks if we have an Algorithm before it passes
         index++;
 
-        if(tList.get(index).contents=="return")
+        if(index<tList.size() && tList.get(index).contents=="return")
         {
             xml+="return";
         }
         else{
-            System.out.println("SYNTAX ERROR");
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
         }
 
         index++;
         semiColon();
         index++;
-
-        
+        Declaration();
+        index++;
+        Rcurly();
         xml+="</PD>";
     }
 
@@ -203,11 +215,32 @@ public class Parser {
         xml+="</LHS>";
     }
 
-    public void Expr()
+    public boolean Expr()
     {
         xml+="<Expr>";
-        
+        if(index<tList.size() && tList.get(index).Class=="string" || tList.get(index).Class=="num" || tList.get(index).contents=="true" || tList.get(index).Class=="false")   //Const production
+        {
+           if(Const()){}else{return false;}
+           index++;
+        }
+        else if(index<tList.size() && tList.get(index).Class=="var")  //further check if its a field or Var
+        {
+            if(index+1<tList.size() && tList.get(index+1).contents=="[") //Its a field
+            {
+                if(Field()){}else{return false;}
+            }
+            else   //Has to be a variable
+            {
+                if(Var()){}else{return false;}
+            }
+            index++;
+        }
+        else if(index<tList.size() && tList.get(index).contents=="input" || tList.get(index).contents=="not")  //UnOp production
+        {
+            if(UnOp()){}else{return false;}
+        }
         xml+="</Expr>";
+        return true;
     }
 
     public void Alternat()
@@ -217,32 +250,98 @@ public class Parser {
         xml+="</Alternat>";
     }
 
-    public void Var()
+    public boolean Var()
     {
         xml+="<Var>";
-        
+        if(Variable()){}else{return false;}
         xml+="</Var>";
+        return true;
     }
 
-    public void Field()
+    public boolean Field()
     {
         xml+="<Field>";
+        if(index<tList.size() && tList.get(index).Class=="var")
+        {
+            xml+=tList.get(index).contents;
+            index++;
+            if(lBracket()){}else{return false;}
+            index++;
+            if(index<tList.size() && tList.get(index).Class=="var")  //The Var production
+            {
+                if(Var()){}else{return false;}
+            }
+            else  //The Const production
+            {
+                if(Const()){}else{return false;}
+            }
+            index++;
+            if(rBracket()){}else{return false;}
+        }
+        else
+        {
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            return false;
+        }
         
         xml+="</Field>";
+        return true;
     }
 
-    public void Const()
+    public boolean Const()
     {
         xml+="<Const>";
+        if(index<tList.size() && tList.get(index).Class=="num")
+        {
+            xml+=tList.get(index).contents;
+        }
+        else if(index<tList.size() && tList.get(index).Class=="string")
+        {
+            xml+=tList.get(index).contents;
+        }
+        else if(index<tList.size() && tList.get(index).contents=="true")
+        {
+            xml+="true";
+        }
+        else if(index<tList.size() && tList.get(index).contents=="false")
+        {
+            xml+="false";
+        }
+        else
+        {
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            return false;
+        }
         
         xml+="</Const>";
+        return true;
     }
 
-    public void UnOp()
+    public boolean UnOp()
     {
         xml+="<UnOp>";
-        
+        if(index<tList.size() && tList.get(index).contents=="input")
+        {
+            xml+="input";
+            index++;
+            if(lParenth()){}else{return false;}
+            index++;
+            if(Var()){}else{return false;}
+            index++;
+            if(rParenth()){}else{return false;}
+        }
+        else if(index<tList.size() && tList.get(index).contents=="not")
+        {
+            xml+="not";
+            index++;
+            if(lParenth()){}else{return false;}
+            index++;
+            if(Expr()){}else{return false;}  //To be fixed
+            index++;
+            if(rParenth()){}else{return false;}
+        }
         xml+="</UnOp>";
+        return true;
     }
 
     public void BinOp()
@@ -252,136 +351,189 @@ public class Parser {
         xml+="</BinOp>";
     }
 
-    public void Dec()
+    public boolean Dec()
     {
         xml+="<Dec>";
-        
+        if(index<tList.size() && tList.get(index).contents=="num" || tList.get(index).contents=="bool" || tList.get(index).contents=="string")//choose first production
+        {
+            //The production Dec->TYP Var
+            if(TYP()){}else{return false;}  //If Dec doesnt start with num/bool/string
+            index++;
+            if(Var()){}else{return false;}
+
+        }
+        else if(index<tList.size() && tList.get(index).contents=="arr")   //We choose the second  production
+        {
+            //The Production Dec->arr TYP[const]
+            xml+="arr";
+            index++;
+            if(TYP()){}else{return false;}
+            index++;
+            if(lBracket()){}else{return false;}
+            index++;
+            if(Const()){}else{return false;}
+            index++;
+            if(rBracket()){}else{return false;}
+            index++;
+            if(Var()){}else{return false;}
+        }
+        else
+        {
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            return false;
+        }
         xml+="</Dec>";
+        return true;
     }
 
-    public void TYP()
+    public boolean TYP()
     {
         xml+="<TYP>";
-        
+        if(index<tList.size() && tList.get(index).contents=="num")
+        {
+            xml+="num";
+        }
+        else if(index<tList.size() && tList.get(index).contents=="string")
+        {
+            xml+="string";
+        }
+        else if(index<tList.size() && tList.get(index).contents=="bool")
+        {
+            xml+="bool";
+        }
+        else
+        {
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            return false;
+        }
         xml+="</TYP>";
+        return true;
     }
 
 
 
     //Adding Terminals
-    public void lCurly()
+    public boolean lCurly()
     {
-        if(tList.get(index).contents=="{")  //Left curly
+        if(index<tList.size() && tList.get(index).contents=="{")  //Left curly
         {
             xml+="{";
+            return true;
         }
         else{
-                System.out.println("SYNTAX ERROR");
-                return;
+                System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+                return false;
         }
     }
 
-    public void Rcurly()
+    public boolean Rcurly()
     {
-        if(tList.get(index).contents=="}")  //Left curly
+        if(index<tList.size() && tList.get(index).contents=="}")  //Left curly
         {
             xml+="}";
+            return true;
         }
         else{
-            System.out.println("SYNTAX ERROR");
-            return;
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            return false;
         }
     }
 
-    public void Comma()
+    public boolean Comma()
     {
-        if(tList.get(index).contents==",")  //Left curly
+        if(index<tList.size() && tList.get(index).contents==",")  //Left curly
         {
             xml+=",";
+            return true;
         }
         else
         {
-            System.out.println("SYNTAX ERROR");
-            return;
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            return false;
         }
     }
 
-    public void lParenth()
+    public boolean lParenth()
     {
-        if(tList.get(index).contents=="(")  //Left curly
+        if(index<tList.size() && tList.get(index).contents=="(")  //Left curly
         {
             xml+="(";
+            return true;
         }
         else
         {
-            System.out.println("SYNTAX ERROR");
-            return;
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            return false;
         }
     }
 
-    public void rParenth()
+    public boolean rParenth()
     {
-        if(tList.get(index).contents==")")  //Left curly
+        if(index<tList.size() && tList.get(index).contents==")")  //Left curly
         {
             xml+=")";
+            return true;
         }
         else
         {
-            System.out.println("SYNTAX ERROR");
-            return;
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            return false;
         }
     }
 
-    public void lBracket()
+    public boolean lBracket()
     {
-        if(tList.get(index).contents=="[")  //Left curly
+        if(index<tList.size() && tList.get(index).contents=="[")  //Left curly
         {
             xml+="[";
+            return true;
         }
         else
         {
-            System.out.println("SYNTAX ERROR");
-            return;
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            return false;
         }
     }
 
-    public void rBracket()
+    public boolean rBracket()
     {
-        if(tList.get(index).contents=="]")  //Left curly
+        if(index<tList.size() && tList.get(index).contents=="]")  //Left curly
         {
             xml+="]";
+            return true;
         }
         else
         {
-            System.out.println("SYNTAX ERROR");
-            return;
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            return false;
         }
     }
 
-    public void semiColon()
+    public boolean semiColon()
     {
-        if(tList.get(index).contents==";")  //Left curly
+        if(index<tList.size() && tList.get(index).contents==";")  //Left curly
         {
             xml+=";";
+            return true;
         }
         else
         {
-            System.out.println("SYNTAX ERROR");
-            return;
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            return false;
         }
     }
 
-    public void Variable()
+    public boolean Variable()
     {
-        if(tList.get(index).Class=="var")  //A variable name
+        if(index<tList.size() && tList.get(index).Class=="var")  //A variable name
         {
             xml+=tList.get(index).contents;
-            index++;
+            return true;
         }
         else
         {
             System.out.print("SYNTAX ERROR");
-            return;
+            return false;
         }
     }
 
@@ -389,15 +541,15 @@ public class Parser {
     //Helper Functions
     public void isAlgorithm()
     {
-        if(tList.get(index).contents=="output" || tList.get(index).contents=="if" || tList.get(index).contents=="do" || tList.get(index).contents=="while" || tList.get(index).contents=="call" || tList.get(index).Class=="var")
+        if(index<tList.size() && tList.get(index).contents=="output" || tList.get(index).contents=="if" || tList.get(index).contents=="do" || tList.get(index).contents=="while" || tList.get(index).contents=="call" || tList.get(index).Class=="var")
         {
             Algorithm();;
         }
     }
 
-    public void isDeclaration()
+    public void Declaration()
     {
-        if(tList.get(index).contents=="string" || tList.get(index).contents=="num" || tList.get(index).contents=="bool" || tList.get(index).contents=="arr")
+        if(index<tList.size() && tList.get(index).contents=="string" || tList.get(index).contents=="num" || tList.get(index).contents=="bool" || tList.get(index).contents=="arr")
         {
             VarDecl();
         }

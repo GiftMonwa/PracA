@@ -71,8 +71,8 @@ public class Lexer{
                         boolean stringLiteral=Pattern.matches("[A-Z0-9\s]*{0,15}",data);
                         if(stringLiteral)   //string acceptable
                         {
-                            String data2='"'+data+'"';
-                            tk=new token(id,"string",data2);
+                           // String data2='"'+data+'"';
+                            tk=new token(id,"string",data);
                             tokenList.add(tk);
                         }
                         else
