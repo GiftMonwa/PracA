@@ -14,7 +14,7 @@ public class Lexer{
         File file=new File(filename);
         Scanner scan=new Scanner(file);
 
-        int row=0;
+        int row=1;
         String line="";
         while(scan.hasNextLine())   //scanning txt line by line
         {
@@ -77,15 +77,16 @@ public class Lexer{
                         }
                         else
                         {
-                            System.out.println("TOKEN ERROR");
+                            System.out.println("TOKEN ERROR at: "+row+" ,col:"+i);
                             scan.close();
                             return;
                         }
                     }
+                    i++;
                 }
                 else if(Character.isDigit(line.charAt(i)) || line.charAt(i)=='-')  //char is an interger
                 {
-                    while(i<line.length() && !operators.contains(line.charAt(i)))  //while not at the end of line or a separator
+                    while(i<line.length() && !operators.contains(line.charAt(i)) && line.charAt(i)!=' ')  //while not at the end of line or a separator
                     {
                         data+=line.charAt(i++);
                     }
@@ -192,9 +193,13 @@ public class Lexer{
                     tokenList.add(tk);
                     i++;
                 }
+                else if(line.charAt(i)==' ')
+                {
+                    i++;
+                }
                 else
                 {
-                    System.out.println("TOKEN ERROR");
+                    System.out.println("TOKEN ERROR at: "+row+" ,col:"+i);
                     scan.close();
                     return;
                 }
@@ -252,15 +257,21 @@ public class Lexer{
 
     public void Tokenizer()
     {
-        for(token i : tokenList)
+        try 
         {
-            System.out.println(i.Class+" "+i.contents);
-        }
+            FileWriter myWriter = new FileWriter("Lexer.txt");
+            for(token i : tokenList)
+            {
+                myWriter.write(i.Class+" "+i.contents + "\r\n");
+                //myWriter.append("New Line")
+            }
+            myWriter.close();
+          }
+           catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+          }
     }
 
-    public void Parser(ArrayList<token> a)
-    {
-        
-    }
     
 }

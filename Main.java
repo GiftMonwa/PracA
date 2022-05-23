@@ -11,5 +11,8 @@ public class Main {
        {
          e.printStackTrace();
        }
+
+       Parser parser=new Parser(lexer.tokenList);
+       parser.parser();
     }
 }

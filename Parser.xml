@@ -1,0 +1,2 @@
+<SPLProgr>main{<Algorithm><Instr><Assign><LHS>output</LHS>:=<Expr><BinOp>and(<Expr><Const>true</Const></Expr>,<Expr><UnOp>not(<Expr><UnOp>not(<Expr><BinOp>add(<Expr><Const>HESS</Const></Expr>,<Expr><Const>true</Const></Expr>)</BinOp></Expr>)</UnOp></Expr>)</UnOp></Expr>)</BinOp></Expr></Assign></Instr>;
+</Algorithm>halt;&#13;}</SPLProgr>

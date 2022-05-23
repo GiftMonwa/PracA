@@ -1,93 +1,95 @@
 import java.util.ArrayList;
-//package com.mkyong.xml.dom;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.*;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStream;
 
 
 
 
 
 public class Parser {
-    ArrayList<token> tList;
-    String TK;  //holds the token
-    DocumentBuilderFactory dFactory;
-    DocumentBuilder dBuilder;
-    Document doc;
-    ArrayList<Element> elements=new ArrayList<>();
-    String xml;   //The xml buffer
+    ArrayList<token> tList=new ArrayList<token>();
+    //String TK;  //holds the token
+    String xml="";   //The xml buffer
     static int index=0;
 
-    Parser(ArrayList<token> e) throws Exception
-    {  
-        dFactory=DocumentBuilderFactory.newInstance();
-        dBuilder=dFactory.newDocumentBuilder();
-        doc = dBuilder.newDocument();
-         
+    Parser(ArrayList<token> e)
+    {   
         for(token i: e)
         {
-            tList.add(i);
+            token tk=new token(i.ID,i.Class,i.contents); 
+            tList.add(tk);
         }
     }
 
-    public void SPLProgr()
+    public void parser()  //The parser
+    {
+        if(SPLProgr())  //No error
+        {
+            try 
+            {
+                FileWriter myWriter = new FileWriter("Parser.xml");
+                myWriter.write(xml);
+                myWriter.close();
+            }
+            catch (IOException e) {
+                System.out.println("An error occurred.");
+                e.printStackTrace();
+            }
+
+        }
+        else{return;}
+
+    }
+
+    public boolean SPLProgr()
     {
         xml+="<SPLProgr>";
         if(!tList.isEmpty())
         {
-            if(index<tList.size() && tList.get(index).contents=="proc")  //checking if Procdef is null
+            if(index<tList.size() && tList.get(index).contents.equals("proc"))  //checking if Procdef is null
             {
-                ProcDefs();
+                if(ProcDefs()){}else{return false;}
+                index++;
             }
-
-            index++;
-
-            if(index<tList.size() && tList.get(index).contents=="main")
+            System.out.println(tList.get(index).contents);
+            if(index<tList.size() && tList.get(index).contents.equals("main"))
             {
                 xml+="main";
                 index++; //The next token that follows main
                 if(lCurly()){}  //if there's no curly bracket its a syntax error
-                else{return;};   //left Curly bracket
+                else{return false;};   //left Curly bracket
 
                 index++;
-                isAlgorithm();  //Parse Algorithm
-                index++;
-                if(index<tList.size() && tList.get(index).contents=="halt")
+                if(isAlgorithm())
+                {
+                    if(Algorithm()){}else{return false;}
+                    //index++;
+                }
+                
+                if(index<tList.size() && tList.get(index).contents.equals("halt"))
                 {
                     xml+="halt";
                 }
                 else{
                     System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
-                    return;
+                    return false;
                 }
-
                 index++;
 
-                if(semiColon()){}else{return;};
+                if(semiColon()){}else{return false;};
                 index++;
-                if(Variable()){}else{return;};
-                index++;
-                if(Rcurly()){}else{return;};
+
+                if(Variable()){};
+                if(Rcurly()){}else{return false;};
             }
             else
             {
-                System.out.print("SYNTAX ERROR");
-                return;
+                System.out.print("SYNTAX ERROR at "+ tList.get(index).ID);
+                return false;
             }
         }
-        xml+="</SPLProgr";
+        xml+="</SPLProgr>";
+        return true;
     }
 
     public boolean ProcDefs()
@@ -99,7 +101,7 @@ public class Parser {
         if(Comma()){}else{return false;};  //check if the next input is  a comma
 
         index++;
-        if(index<tList.size() && tList.get(index).contents=="proc")
+        if(index<tList.size() && tList.get(index).contents.equals("proc"))
         {
             ProcDefs();
         } //If its null we continue
@@ -109,12 +111,15 @@ public class Parser {
 
     public boolean Algorithm()
     {
-        xml+="<Algorith>";
+        xml+="<Algorithm>";
         if(Instr()){}else{return false;}
+        
         index++;
-        if(index<tList.size() && tList.get(index).contents==";")
+        
+        if(index<tList.size() && tList.get(index).contents.equals(";"))
         {
-            xml+=";";
+            
+            xml+=";\n";
             index++;
         }
         else
@@ -126,20 +131,20 @@ public class Parser {
         if(isAlgorithm())
         {
             if(Algorithm()){}else{return false;}
-            //index++;
+            index++;
         }
         xml+="</Algorithm>";
         return true;
     }
 
-    public boolean VarDecl()
+    public boolean VarDecl()  //Needs revisiting
     {
         xml+="<VarDecl>";
         if(Dec()){}else{return false;}
         index++;
         if(semiColon()){}else{return false;}
         index++;
-        if(VarDecl()){};
+        Declaration();
         xml+="</VarDecl>";
         return true;
     }
@@ -147,7 +152,7 @@ public class Parser {
     public boolean PD()
     {
         xml+="<PD>";
-        if(index<tList.size() && tList.get(index).contents=="proc")
+        if(index<tList.size() && tList.get(index).contents.equals("proc"))
         {
             xml+="proc";   
         }
@@ -164,7 +169,7 @@ public class Parser {
         if(lCurly()){}else{return false;};
 
         index++;
-        if(index<tList.size() && tList.get(index).contents=="proc")  //Check if procdefs is null
+        if(index<tList.size() && tList.get(index).contents.equals("proc"))  //Check if procdefs is null
         {
             if(ProcDefs()){}else{return false;}
             index++;
@@ -176,7 +181,7 @@ public class Parser {
             index++;
         }
 
-        if(index<tList.size() && tList.get(index).contents=="return")
+        if(index<tList.size() && tList.get(index).contents.equals("return"))
         {
             xml+="return";
         }
@@ -185,9 +190,9 @@ public class Parser {
         }
         index++;
         semiColon();
+
         index++;
         Declaration();
-        index++;
         Rcurly();
         xml+="</PD>";
         return true;
@@ -198,19 +203,19 @@ public class Parser {
         xml+="<Instr>";
         if(index<tList.size())
         {
-            if(tList.get(index).contents=="output" || tList.get(index).Class=="var")  //The Assign Production
+            if(tList.get(index).contents.equals("output") || tList.get(index).Class.equals("var"))  //The Assign Production
             {
                 if(Assign()){}else{return false;}
             }
-            else if(tList.get(index).contents=="if")   //Branch Production
+            else if(tList.get(index).contents.equals("if"))   //Branch Production
             {
                 if(Branch()){}else{return false;}
             }
-            else if(tList.get(index).contents=="while" || tList.get(index).contents=="do")  //The Loop Production
+            else if(tList.get(index).contents.equals("while") || tList.get(index).contents.equals("do"))  //The Loop Production
             {
                 if(Loop()){}else{return false;}
             }
-            else if(tList.get(index).contents=="call")  //The Pcall Production
+            else if(tList.get(index).contents.equals("call"))  //The Pcall Production
             {
                 if(PCall()){}else{return false;}
             }
@@ -236,7 +241,7 @@ public class Parser {
         {
             if(LHS()){}else{return false;}
             index++;
-            if(index<tList.size() && tList.get(index).contents==":=")
+            if(index<tList.size() && tList.get(index).contents.equals(":="))
             {
                 xml+=":=";
             }
@@ -260,7 +265,7 @@ public class Parser {
     public boolean Branch()
     {
         xml+="<Branch>";
-        if(index<tList.size() && tList.get(index).contents=="if")
+        if(index<tList.size() && tList.get(index).contents.equals("if"))
         {
             xml+="if";
             index++;
@@ -270,7 +275,7 @@ public class Parser {
             index++;
             if(rParenth()){}else{return false;}
             index++;
-            if(index<tList.size() && tList.get(index).contents=="then")
+            if(index<tList.size() && tList.get(index).contents.equals("then"))
             {
                 xml+="then";
             }
@@ -304,7 +309,7 @@ public class Parser {
         xml+="<Loop>";
         if(index<tList.size())
         {
-            if(tList.get(index).contents=="do")
+            if(tList.get(index).contents.equals("do"))
             {
                 xml+="do";
                 index++;
@@ -317,7 +322,7 @@ public class Parser {
                 }
                 if(Rcurly()){}else{return false;}
                 index++;
-                if(index<tList.size() && tList.get(index).contents=="until")
+                if(index<tList.size() && tList.get(index).contents.equals("until"))
                 {
                     xml+="until";
                     index++;
@@ -332,7 +337,7 @@ public class Parser {
                     return false;
                 }
             }
-            else if(tList.get(index).contents=="do")
+            else if(tList.get(index).contents.equals("do"))
             {
                 xml+="while";
                 index++;
@@ -342,7 +347,7 @@ public class Parser {
                 index++;
                 if(rParenth()){}else{return false;}
                 index++;
-                if(index<tList.size() && tList.get(index).contents=="do")
+                if(index<tList.size() && tList.get(index).contents.equals("do"))
                 {
                     xml+="do";
                 }
@@ -379,7 +384,7 @@ public class Parser {
     public boolean PCall()
     {
         xml+="<PCall>";
-        if(index<tList.size() && tList.get(index).contents=="call")
+        if(index<tList.size() && tList.get(index).contents.equals("call"))
         {
             xml+="call";
         }
@@ -399,15 +404,15 @@ public class Parser {
         xml+="<LHS>";
         if(index<tList.size())
         {
-            if(tList.get(index).contents=="output")
+            if(tList.get(index).contents.equals("output"))
             {
                 xml+="output";
             }
-            else if(index+1<tList.size() && tList.get(index).Class=="var" && tList.get(index+1).contents=="[") //Its a field
+            else if(index+1<tList.size() && tList.get(index).Class.equals("var") && tList.get(index+1).contents.equals("[")) //Its a field
             {
                 if(Field()){}else{return false;}
             }
-            else if(tList.get(index).Class=="var")  //Has to be a variable
+            else if(tList.get(index).Class.equals("var"))  //Has to be a variable
             {
                 if(Var()){}else{return false;}
             }
@@ -429,17 +434,17 @@ public class Parser {
     public boolean Expr()
     {
         xml+="<Expr>";
-        if(index<tList.size() && tList.get(index).Class=="string" || tList.get(index).Class=="num" || tList.get(index).contents=="true" || tList.get(index).Class=="false")   //Const production
+        if(index<tList.size() && tList.get(index).Class.equals("string") || tList.get(index).Class.equals("num") || tList.get(index).contents.equals("true") || tList.get(index).Class.equals("false"))   //Const production
         {
            if(Const()){}else{return false;}
         }
-        else if(index<tList.size() && tList.get(index).Class=="var")  //further check if its a field or Var
+        else if(index<tList.size() && tList.get(index).Class.equals("var"))  //further check if its a field or Var
         {
-            if(index+1<tList.size() && tList.get(index).Class=="var" && tList.get(index+1).contents=="[") //Its a field
+            if(index+1<tList.size() && tList.get(index).Class.equals("var") && tList.get(index+1).contents.equals("[")) //Its a field
             {
                 if(Field()){}else{return false;}
             }
-            else  if(tList.get(index).Class=="var") //Has to be a variable
+            else  if(tList.get(index).Class.equals("var")) //Has to be a variable
             {
                 if(Var()){}else{return false;}
             }
@@ -449,11 +454,11 @@ public class Parser {
                 return false;
             }
         }
-        else if(index<tList.size() && tList.get(index).contents=="input" || tList.get(index).contents=="not")  //UnOp production
+        else if(index<tList.size() && tList.get(index).contents.equals("input") || tList.get(index).contents.equals("not"))  //UnOp production
         {
             if(UnOp()){}else{return false;}
         }
-        else if(index<tList.size() && tList.get(index).contents=="and"||tList.get(index).contents=="or" || tList.get(index).contents=="eq" || tList.get(index).contents=="larger" || tList.get(index).contents=="add" || tList.get(index).contents=="sub" || tList.get(index).contents=="mult")
+        else if(index<tList.size() && tList.get(index).contents.equals("and")||tList.get(index).contents.equals("or") || tList.get(index).contents.equals("eq") || tList.get(index).contents.equals("larger") || tList.get(index).contents.equals("add") || tList.get(index).contents.equals("sub") || tList.get(index).contents.equals("mult"))
         {
             //BinOp production
             if(BinOp()){}else{return true;}
@@ -495,13 +500,13 @@ public class Parser {
     public boolean Field()
     {
         xml+="<Field>";
-        if(index<tList.size() && tList.get(index).Class=="var")
+        if(index<tList.size() && tList.get(index).Class.equals("var"))
         {
             xml+=tList.get(index).contents;
             index++;
             if(lBracket()){}else{return false;}
             index++;
-            if(index<tList.size() && tList.get(index).Class=="var")  //The Var production
+            if(index<tList.size() && tList.get(index).Class.equals("var"))  //The Var production
             {
                 if(Var()){}else{return false;}
             }
@@ -525,19 +530,19 @@ public class Parser {
     public boolean Const()
     {
         xml+="<Const>";
-        if(index<tList.size() && tList.get(index).Class=="num")
+        if(index<tList.size() && tList.get(index).Class.equals("num"))
         {
             xml+=tList.get(index).contents;
         }
-        else if(index<tList.size() && tList.get(index).Class=="string")
+        else if(index<tList.size() && tList.get(index).Class.equals("string"))
         {
             xml+=tList.get(index).contents;
         }
-        else if(index<tList.size() && tList.get(index).contents=="true")
+        else if(index<tList.size() && tList.get(index).contents.equals("true"))
         {
             xml+="true";
         }
-        else if(index<tList.size() && tList.get(index).contents=="false")
+        else if(index<tList.size() && tList.get(index).contents.equals("false"))
         {
             xml+="false";
         }
@@ -554,7 +559,7 @@ public class Parser {
     public boolean UnOp()
     {
         xml+="<UnOp>";
-        if(index<tList.size() && tList.get(index).contents=="input")
+        if(index<tList.size() && tList.get(index).contents.equals("input"))
         {
             xml+="input";
             index++;
@@ -564,7 +569,7 @@ public class Parser {
             index++;
             if(rParenth()){}else{return false;}
         }
-        else if(index<tList.size() && tList.get(index).contents=="not")
+        else if(index<tList.size() && tList.get(index).contents.equals("not"))
         {
             xml+="not";
             index++;
@@ -583,31 +588,31 @@ public class Parser {
         xml+="<BinOp>";
         if(index<tList.size()){
 
-            if(tList.get(index).contents=="and")
+            if(tList.get(index).contents.equals("and"))
             {
                 xml+="and";
             }
-            else if(tList.get(index).contents=="or")
+            else if(tList.get(index).contents.equals("or"))
             {
                 xml+="or";
             }
-            else if(tList.get(index).contents=="eq")
+            else if(tList.get(index).contents.equals("eq"))
             {
                 xml+="eq";
             }
-            else if(tList.get(index).contents=="larger")
+            else if(tList.get(index).contents.equals("larger"))
             {
                 xml+="larger";
             }
-            else if(tList.get(index).contents=="add")
+            else if(tList.get(index).contents.equals("add"))
             {
                 xml+="add";
             } 
-            else if(tList.get(index).contents=="sub")
+            else if(tList.get(index).contents.equals("sub"))
             {
                 xml+="sub";
             }
-            else if(tList.get(index).contents=="mult")
+            else if(tList.get(index).contents.equals("mult"))
             {
                 xml+="and";
             }
@@ -640,7 +645,7 @@ public class Parser {
     public boolean Dec()
     {
         xml+="<Dec>";
-        if(index<tList.size() && tList.get(index).contents=="num" || tList.get(index).contents=="bool" || tList.get(index).contents=="string")//choose first production
+        if(index<tList.size() && tList.get(index).contents.equals("num") || tList.get(index).contents.equals("bool") || tList.get(index).contents.equals("string"))//choose first production
         {
             //The production Dec->TYP Var
             if(TYP()){}else{return false;}  //If Dec doesnt start with num/bool/string
@@ -648,7 +653,7 @@ public class Parser {
             if(Var()){}else{return false;}
 
         }
-        else if(index<tList.size() && tList.get(index).contents=="arr")   //We choose the second  production
+        else if(index<tList.size() && tList.get(index).contents.equals("arr"))   //We choose the second  production
         {
             //The Production Dec->arr TYP[const]
             xml+="arr";
@@ -675,15 +680,15 @@ public class Parser {
     public boolean TYP()
     {
         xml+="<TYP>";
-        if(index<tList.size() && tList.get(index).contents=="num")
+        if(index<tList.size() && tList.get(index).contents.equals("num"))
         {
             xml+="num";
         }
-        else if(index<tList.size() && tList.get(index).contents=="string")
+        else if(index<tList.size() && tList.get(index).contents.equals("string"))
         {
             xml+="string";
         }
-        else if(index<tList.size() && tList.get(index).contents=="bool")
+        else if(index<tList.size() && tList.get(index).contents.equals("bool"))
         {
             xml+="bool";
         }
@@ -701,7 +706,7 @@ public class Parser {
     //Adding Terminals
     public boolean lCurly()
     {
-        if(index<tList.size() && tList.get(index).contents=="{")  //Left curly
+        if(index<tList.size() && tList.get(index).contents.equals("{"))  //Left curly
         {
             xml+="{";
             return true;
@@ -714,7 +719,7 @@ public class Parser {
 
     public boolean Rcurly()
     {
-        if(index<tList.size() && tList.get(index).contents=="}")  //Left curly
+        if(index<tList.size() && tList.get(index).contents.equals("}"))  //Left curly
         {
             xml+="}";
             return true;
@@ -727,7 +732,7 @@ public class Parser {
 
     public boolean Comma()
     {
-        if(index<tList.size() && tList.get(index).contents==",")  //Left curly
+        if(index<tList.size() && tList.get(index).contents.equals(","))  //Left curly
         {
             xml+=",";
             return true;
@@ -741,7 +746,7 @@ public class Parser {
 
     public boolean lParenth()
     {
-        if(index<tList.size() && tList.get(index).contents=="(")  //Left curly
+        if(index<tList.size() && tList.get(index).contents.equals("("))  //Left curly
         {
             xml+="(";
             return true;
@@ -755,7 +760,7 @@ public class Parser {
 
     public boolean rParenth()
     {
-        if(index<tList.size() && tList.get(index).contents==")")  //Left curly
+        if(index<tList.size() && tList.get(index).contents.equals(")"))  //Left curly
         {
             xml+=")";
             return true;
@@ -769,7 +774,7 @@ public class Parser {
 
     public boolean lBracket()
     {
-        if(index<tList.size() && tList.get(index).contents=="[")  //Left curly
+        if(index<tList.size() && tList.get(index).contents.equals("["))  //Left curly
         {
             xml+="[";
             return true;
@@ -783,7 +788,7 @@ public class Parser {
 
     public boolean rBracket()
     {
-        if(index<tList.size() && tList.get(index).contents=="]")  //Left curly
+        if(index<tList.size() && tList.get(index).contents.equals("]"))  //Left curly
         {
             xml+="]";
             return true;
@@ -797,7 +802,7 @@ public class Parser {
 
     public boolean semiColon()
     {
-        if(index<tList.size() && tList.get(index).contents==";")  //Left curly
+        if(index<tList.size() && tList.get(index).contents.equals(";"))  //Left curly
         {
             xml+=";";
             return true;
@@ -811,14 +816,14 @@ public class Parser {
 
     public boolean Variable()
     {
-        if(index<tList.size() && tList.get(index).Class=="var")  //A variable name
+        if(index<tList.size() && tList.get(index).Class.equals("var"))  //A variable name
         {
             xml+=tList.get(index).contents;
             return true;
         }
         else
         {
-            System.out.print("SYNTAX ERROR");
+            //System.out.print("SYNTAX ERROR");
             return false;
         }
     }
@@ -827,7 +832,7 @@ public class Parser {
     //Helper Functions
     public boolean isAlgorithm()
     {
-        if(index<tList.size() && tList.get(index).contents=="output" || tList.get(index).contents=="if" || tList.get(index).contents=="do" || tList.get(index).contents=="while" || tList.get(index).contents=="call" || tList.get(index).Class=="var")
+        if(index<tList.size() && tList.get(index).contents.equals("output") || tList.get(index).contents.equals("if") || tList.get(index).contents.equals("do") || tList.get(index).contents.equals("while") || tList.get(index).contents.equals("call") || tList.get(index).Class.equals("var"))
         {
             return true;
         }
@@ -839,11 +844,34 @@ public class Parser {
 
     public void Declaration()
     {
-        if(index<tList.size() && tList.get(index).contents=="string" || tList.get(index).contents=="num" || tList.get(index).contents=="bool" || tList.get(index).contents=="arr")
+        if(index<tList.size() && tList.get(index).contents.equals("string") || tList.get(index).contents.equals("num") || tList.get(index).contents.equals("bool") || tList.get(index).contents.equals("arr"))
         {
             VarDecl();
+            index++;
+        }
+        else
+        {
+            index--;
         }
     }
 
+   /* public static Document xmlToString(String XML) 
+    {
+      DocumentBuilderFactory fact = DocumentBuilderFactory.newInstance();  
+      DocumentBuilder builder = null;
+      try
+      {
+        builder = fact.newDocumentBuilder();
+         
+        Document doc = builder.parse(new InputSource(new StringReader(XML)));
+        return doc;
+      } 
+      catch (Exception e) 
+      {
+        e.printStackTrace();
+      }
+      return null;
+    }*/
+  
 
 }
