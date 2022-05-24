@@ -1,0 +1,17 @@
+main {
+    while("NKU")
+    do{
+        call factorial;
+    };
+
+    if(15)
+    then
+    {
+        x:= input(y); 
+    }
+    else{
+        call xy;
+    };
+    halt;
+    num z;
+}

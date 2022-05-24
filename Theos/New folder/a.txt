@@ -1,0 +1,9 @@
+main{
+    do{
+        output := and(x,x[y]);
+    }
+    until(z);
+  halt;  
+}
+
+ 

@@ -1,0 +1,14 @@
+proc factorial{
+    proc fact{
+        return;
+    },
+return;
+},
+proc a{
+return;
+},
+
+main{
+    call factorial;
+    halt;
+}

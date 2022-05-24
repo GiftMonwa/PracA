@@ -8,7 +8,7 @@ public class Lexer{
     public ArrayList<String> keywords=new ArrayList<String>();
     public ArrayList<Character> operators=new ArrayList<Character>();
 
-    public void readInput(String filename) throws Exception
+    public boolean readInput(String filename) throws Exception
     {
         initializeKW();   //Initializing the operators and keywords
         File file=new File(filename);
@@ -18,7 +18,7 @@ public class Lexer{
         String line="";
         while(scan.hasNextLine())   //scanning txt line by line
         {
-            int col=0;
+            //int col=0;
             String data="";
             token tk;
             //int num;
@@ -44,7 +44,7 @@ public class Lexer{
                     }
                     boolean userDefined=Pattern.matches("[a-z]([a-z]|[0-9])*",data);  //test if the data is a userDef
 
-                    id=row+","+col;
+                    id=row+","+i;
                     if(keywords.contains(data))   //if the data word is a keyword
                     {       
                         tk=new token(id,"KeyW",data);
@@ -55,11 +55,17 @@ public class Lexer{
                         tk=new token(id,"var",data);
                         tokenList.add(tk);
                     }
+                    else
+                    {
+                        System.out.println("TOKEN ERROR at row: "+row+" ,col:"+i+ ", "+data);
+                        scan.close();
+                        return false;
+                    }
                 }
                 else if(line.charAt(i)=='"') //If we find the start of the string
                 {
                     //System.out.println("I got to a string at "+ i );
-                    id=row+","+col;
+                    id=row+","+i;
                     i++;  //skip the " character
                     while(i<line.length() && line.charAt(i)!='"')  //while not end of line aand not end of string
                     {
@@ -69,7 +75,7 @@ public class Lexer{
                     if(i<line.length() && line.charAt(i)=='"')    //The loop terminated because end of string not end of line
                     {
                         boolean stringLiteral=Pattern.matches("[A-Z0-9\s]*{0,15}",data);
-                        if(stringLiteral)   //string acceptable
+                        if(stringLiteral && data.length()<16)   //string acceptable
                         {
                            // String data2='"'+data+'"';
                             tk=new token(id,"string",data);
@@ -77,9 +83,9 @@ public class Lexer{
                         }
                         else
                         {
-                            System.out.println("TOKEN ERROR at: "+row+" ,col:"+i);
+                            System.out.println("TOKEN ERROR at: "+row+" ,col:"+i+data);
                             scan.close();
-                            return;
+                            return false;
                         }
                     }
                     i++;
@@ -91,7 +97,7 @@ public class Lexer{
                         data+=line.charAt(i++);
                     }
 
-                    if(data.length()==1)  //single digit int won't be accepted by the regex pattern add space
+                    if(data.length()==1 && Integer.parseInt(data)!=0)  //single digit int won't be accepted by the regex pattern add space
                     {
                         data+=" ";
                     }
@@ -99,22 +105,22 @@ public class Lexer{
 
                     if(number)  //the number comforms to our format
                     {
-                        id=row+","+col;
+                        id=row+","+i;
                         data.trim();  //Removes whitespace
                         tk=new token(id, "num", data);
                         tokenList.add(tk);
                     }
                     else
                     {
-                        System.out.println("TOKEN ERROR at: "+row+" ,col:"+i);
+                        System.out.println("TOKEN ERROR at: "+row+" ,col:"+i+" Invalid number "+data);
                         scan.close();
-                        return;
+                        return false;
                     }
                 }
                 else if(line.charAt(i)==':')   
                 {
                    // System.out.println("I hit the operator");
-                    id=row+","+col;
+                    id=row+","+i;
                     if(i+1<line.length() && line.charAt(i+1)=='=')  //The sign :=
                     {
                         data=":=";
@@ -124,14 +130,14 @@ public class Lexer{
                     }
                     else
                     {
-                        System.out.println("TOKEN ERROR at: "+row+" ,col:"+i);
+                        System.out.println("TOKEN ERROR at: "+row+" ,col:"+i+" "+data);
                         scan.close();
-                        return;
+                        return false;
                     }
                 }
                 else if(line.charAt(i)==';')   //end of instruction semicolon
                 {
-                    id=row+","+col;
+                    id=row+","+i;;
                     data=Character.toString(';');
                     tk=new token(id, "operator", data);
                     tokenList.add(tk);
@@ -139,7 +145,7 @@ public class Lexer{
                 }
                 else if(line.charAt(i)=='(')
                 {
-                    id=row+","+col;
+                    id=row+","+i;
                     data=Character.toString('(');
                     tk=new token(id, "lPar", data);
                     tokenList.add(tk);
@@ -147,7 +153,7 @@ public class Lexer{
                 }
                 else if(line.charAt(i)==',')
                 {
-                    id=row+","+col;
+                    id=row+","+i;
                     data=Character.toString(',');
                     tk=new token(id, "comma", data);
                     tokenList.add(tk);
@@ -155,7 +161,7 @@ public class Lexer{
                 }
                 else if(line.charAt(i)==')')
                 {
-                    id=row+","+col;
+                    id=row+","+i;
                     data=Character.toString(')');
                     tk=new token(id, "rPar", data);
                     tokenList.add(tk);
@@ -163,7 +169,7 @@ public class Lexer{
                 }
                 else if(line.charAt(i)=='[')
                 {
-                    id=row+","+col;
+                    id=row+","+i;
                     data=Character.toString('[');
                     tk=new token(id, "lBra", data);
                     tokenList.add(tk);
@@ -171,7 +177,7 @@ public class Lexer{
                 }
                 else if(line.charAt(i)==']')
                 {
-                    id=row+","+col;
+                    id=row+","+i;
                     data=Character.toString(']');
                     tk=new token(id, "rBra", data);
                     tokenList.add(tk);
@@ -179,7 +185,7 @@ public class Lexer{
                 }
                 else if(line.charAt(i)=='{')
                 {
-                    id=row+","+col;
+                    id=row+","+i;
                     data=Character.toString('{');
                     tk=new token(id, "lCurly", data);
                     tokenList.add(tk);
@@ -187,7 +193,7 @@ public class Lexer{
                 }
                 else if(line.charAt(i)=='}')
                 {
-                    id=row+","+col;
+                    id=row+","+i;
                     data=Character.toString('}');
                     tk=new token(id, "rCurly", data);
                     tokenList.add(tk);
@@ -199,9 +205,9 @@ public class Lexer{
                 }
                 else
                 {
-                    System.out.println("TOKEN ERROR at: "+row+" ,col:"+i);
+                    System.out.println("TOKEN ERROR at: "+row+" ,col:"+i+" "+line.charAt(i));
                     scan.close();
-                    return;
+                    return false;
                 }
 
                 //i++;
@@ -210,6 +216,7 @@ public class Lexer{
             
         }
         scan.close();
+        return true;
     }
 
     public void initializeKW()

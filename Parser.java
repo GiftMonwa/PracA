@@ -51,7 +51,7 @@ public class Parser {
                 if(ProcDefs()){}else{return false;}
                 index++;
             }
-            System.out.println(tList.get(index).contents);
+
             if(index<tList.size() && tList.get(index).contents.equals("main"))
             {
                 xml+="main";
@@ -62,6 +62,7 @@ public class Parser {
                 index++;
                 if(isAlgorithm())
                 {
+                    //System.out.println("I got here");
                     if(Algorithm()){}else{return false;}
                     //index++;
                 }
@@ -71,20 +72,26 @@ public class Parser {
                     xml+="halt";
                 }
                 else{
-                    System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+                    System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+"Expected ; after halt");
                     return false;
                 }
                 index++;
+                
 
                 if(semiColon()){}else{return false;};
                 index++;
+               // System.out.println("I got here");
 
-                if(Variable()){};
+                if(Declaration())
+                {
+                    if(VarDecl()){index++;}
+                }
+
                 if(Rcurly()){}else{return false;};
             }
             else
             {
-                System.out.print("SYNTAX ERROR at "+ tList.get(index).ID);
+                System.out.print("SYNTAX ERROR at "+ tList.get(index).ID+"Invalid start to a program,expected proc or main");
                 return false;
             }
         }
@@ -95,17 +102,23 @@ public class Parser {
     public boolean ProcDefs()
     {
         xml+="<ProcDefs>";
-        if(PD()){}else{return false;};
         
+        if(PD()){}else{return false;};
+
         index++;
         if(Comma()){}else{return false;};  //check if the next input is  a comma
 
         index++;
         if(index<tList.size() && tList.get(index).contents.equals("proc"))
         {
-            ProcDefs();
+            if(ProcDefs()){}else{return false;};
         } //If its null we continue
+        else
+        {
+            index--;
+        }
         xml+="</ProcDefs>";
+        
         return true;
     }
 
@@ -115,23 +128,22 @@ public class Parser {
         if(Instr()){}else{return false;}
         
         index++;
-        
         if(index<tList.size() && tList.get(index).contents.equals(";"))
         {
             
-            xml+=";\n";
+            xml+=";";
             index++;
         }
         else
         {
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" Expected a ; after instruction");
             return false;
         }
 
         if(isAlgorithm())
         {
             if(Algorithm()){}else{return false;}
-            index++;
+            //index++;
         }
         xml+="</Algorithm>";
         return true;
@@ -143,8 +155,16 @@ public class Parser {
         if(Dec()){}else{return false;}
         index++;
         if(semiColon()){}else{return false;}
+
         index++;
-        Declaration();
+        if(Declaration())  //can be null
+        {
+            VarDecl();
+        }
+        else
+        {
+            index--;
+        }
         xml+="</VarDecl>";
         return true;
     }
@@ -158,13 +178,13 @@ public class Parser {
         }
         else
         {
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" PD begins with proc");
             return false;
         }
         
         index++;
         if(Variable()){}else{return false;};  //Adding a userDefined variable
-        
+
         index++;
         if(lCurly()){}else{return false;};
 
@@ -175,10 +195,12 @@ public class Parser {
             index++;
         }
 
+        //System.out.println("i WILL Graduate");
         if(isAlgorithm())
         {
             if(Algorithm()){}else{return false;}
-            index++;
+            //System.out.println("i WILL Graduate");
+            //index++;
         }
 
         if(index<tList.size() && tList.get(index).contents.equals("return"))
@@ -186,13 +208,22 @@ public class Parser {
             xml+="return";
         }
         else{
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" Expected return kw");
         }
         index++;
-        semiColon();
 
+        if(semiColon()){}
+        else{
+            System.out.println("SYNTAX ERROR AT "+tList.get(index).ID+" Expected a ; after return");
+        };
+        
         index++;
-        Declaration();
+        if(Declaration())
+        {
+            
+            if(VarDecl()){}else{return false;};
+            index++;
+        }
         Rcurly();
         xml+="</PD>";
         return true;
@@ -221,13 +252,13 @@ public class Parser {
             }
             else
             {
-                System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+                System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" Invalid start to an Instruction");
                 return false;
             }
         }
         else
         {
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" index out of bounds in Instr");
             return false;
         }
         xml+="</Instr>";
@@ -255,7 +286,7 @@ public class Parser {
         }
         else
         {
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" index Out of bounds ins Assign");
             return false;
         }
         xml+="</Assign>";
@@ -281,7 +312,7 @@ public class Parser {
             }
             else
             {
-                System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+                System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" Expected a then statement");
                 return false;
             }
             index++;
@@ -289,14 +320,15 @@ public class Parser {
             index++;
             if(isAlgorithm())
             {
+
                 if(Algorithm()){}else{return false;}
-                index++;
+                //index++;
             }
             if(Rcurly()){}else{return false;}
         }
         else
         {
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" Index out of bounds in Branch");
             return false;
         }
         
@@ -318,7 +350,7 @@ public class Parser {
                 if(isAlgorithm())
                 {
                     if(Algorithm()){}else{return false;}
-                    index++;
+                    //index++;
                 }
                 if(Rcurly()){}else{return false;}
                 index++;
@@ -333,11 +365,11 @@ public class Parser {
                     if(rParenth()){}else{return false;}
                 }
                 else{
-                    System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+                    System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" Expected the until kw");
                     return false;
                 }
             }
-            else if(tList.get(index).contents.equals("do"))
+            else if(tList.get(index).contents.equals("while"))
             {
                 xml+="while";
                 index++;
@@ -350,30 +382,33 @@ public class Parser {
                 if(index<tList.size() && tList.get(index).contents.equals("do"))
                 {
                     xml+="do";
+                    
                 }
                 else{
-                    System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+                    System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" Expected the do keyword");
                     return false;   
                 }
                 index++;
                 if(lCurly()){}else{return false;}
+                
                 index++;
                 if(isAlgorithm())
                 {
                     if(Algorithm()){}else{return false;}
-                    index++;
+                    //index++;
                 }
+                //System.out.println(tList.get(index-1).contents);
                 if(Rcurly()){}else{return false;}
             }
             else
             {
-                System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+                System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" Invalid Loop,expected Do or while");
                 return false;
             }
         }
         else
         {
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" index out of bounds in Loop");
             return false;
         }
 
@@ -389,7 +424,7 @@ public class Parser {
             xml+="call";
         }
         else{
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" EXPECTED KW call");
             return false;
         }
 
@@ -418,13 +453,13 @@ public class Parser {
             }
             else
             {
-                System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+                System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" Invalid LHS");
                 return false;
             }
         }
         else
         {
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+ "index Out of bounds in LHS");
             return false;
         }
         xml+="</LHS>";
@@ -440,7 +475,7 @@ public class Parser {
         }
         else if(index<tList.size() && tList.get(index).Class.equals("var"))  //further check if its a field or Var
         {
-            if(index+1<tList.size() && tList.get(index).Class.equals("var") && tList.get(index+1).contents.equals("[")) //Its a field
+            if(index+1<tList.size() && tList.get(index+1).contents.equals("[")) //Its a field
             {
                 if(Field()){}else{return false;}
             }
@@ -450,7 +485,7 @@ public class Parser {
             }
             else
             {
-                System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+                System.out.println("SYNTAX ERROR at "+ tList.get(index).ID +" Invalid Expr");
                 return false;
             }
         }
@@ -465,7 +500,7 @@ public class Parser {
         }
         else
         {
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" index out of bounds in Expr");
             return false;
         }
         xml+="</Expr>";
@@ -482,7 +517,7 @@ public class Parser {
         if(isAlgorithm())
         {
             if(Algorithm()){}else{return false;}
-            index++;
+            //index++;
         }
         if(Rcurly()){}else{return false;}
         xml+="</Alternat>";
@@ -503,23 +538,30 @@ public class Parser {
         if(index<tList.size() && tList.get(index).Class.equals("var"))
         {
             xml+=tList.get(index).contents;
+
             index++;
             if(lBracket()){}else{return false;}
+
             index++;
             if(index<tList.size() && tList.get(index).Class.equals("var"))  //The Var production
             {
                 if(Var()){}else{return false;}
             }
-            else  //The Const production
+            else if(index<tList.size() && (tList.get(index).Class.equals("num") || tList.get(index).Class.equals("string") || tList.get(index).contents.equals("true")||tList.get(index).contents.equals("false"))) //The Const production
             {
                 if(Const()){}else{return false;}
+            }
+            else
+            {
+                System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" Invalid details inside []");
+                return false;
             }
             index++;
             if(rBracket()){}else{return false;}
         }
         else
         {
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" Index out of bounds in Field");
             return false;
         }
         
@@ -548,7 +590,7 @@ public class Parser {
         }
         else
         {
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" Invalid Type");
             return false;
         }
         
@@ -616,10 +658,15 @@ public class Parser {
             {
                 xml+="and";
             }
+            else
+            {
+                System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" Invalid binary operator");
+                return false;
+            }
         }
         else
         {
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" Index out of bounds in BinOp");
             return false;
         }
 
@@ -670,7 +717,7 @@ public class Parser {
         }
         else
         {
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+ "Index out of bounds in Dec");
             return false;
         }
         xml+="</Dec>";
@@ -694,7 +741,7 @@ public class Parser {
         }
         else
         {
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" Error in TYP");
             return false;
         }
         xml+="</TYP>";
@@ -712,7 +759,7 @@ public class Parser {
             return true;
         }
         else{
-                System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+                System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" EXPECTED {");
                 return false;
         }
     }
@@ -725,7 +772,7 @@ public class Parser {
             return true;
         }
         else{
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+" Expected }");
             return false;
         }
     }
@@ -739,7 +786,7 @@ public class Parser {
         }
         else
         {
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+"Expected a ,");
             return false;
         }
     }
@@ -753,7 +800,7 @@ public class Parser {
         }
         else
         {
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+"Expected a (");
             return false;
         }
     }
@@ -767,7 +814,7 @@ public class Parser {
         }
         else
         {
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+"Expected a )");
             return false;
         }
     }
@@ -781,7 +828,7 @@ public class Parser {
         }
         else
         {
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+"Expected a [");
             return false;
         }
     }
@@ -795,7 +842,7 @@ public class Parser {
         }
         else
         {
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+"Expected a ]");
             return false;
         }
     }
@@ -809,7 +856,7 @@ public class Parser {
         }
         else
         {
-            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID);
+            System.out.println("SYNTAX ERROR at "+ tList.get(index).ID+"Expected a ;");
             return false;
         }
     }
@@ -842,36 +889,18 @@ public class Parser {
         }
     }
 
-    public void Declaration()
+    public boolean Declaration()
     {
         if(index<tList.size() && tList.get(index).contents.equals("string") || tList.get(index).contents.equals("num") || tList.get(index).contents.equals("bool") || tList.get(index).contents.equals("arr"))
         {
-            VarDecl();
-            index++;
+            return true;
         }
         else
         {
-            index--;
+            return false;
         }
     }
 
-   /* public static Document xmlToString(String XML) 
-    {
-      DocumentBuilderFactory fact = DocumentBuilderFactory.newInstance();  
-      DocumentBuilder builder = null;
-      try
-      {
-        builder = fact.newDocumentBuilder();
-         
-        Document doc = builder.parse(new InputSource(new StringReader(XML)));
-        return doc;
-      } 
-      catch (Exception e) 
-      {
-        e.printStackTrace();
-      }
-      return null;
-    }*/
   
 
 }

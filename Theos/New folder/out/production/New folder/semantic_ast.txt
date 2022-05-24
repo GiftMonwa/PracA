@@ -1,0 +1,14 @@
+└─0:SPL        scope level: 0
+ ├─1:ProcDefs        scope level: 0
+ │ ├─2:PD        scope level: 0
+ │ │ ├─3:proc: factorial        scope level: 0       proc name: P0       type: P
+ │ │ └─4:ProcDefs        scope level: 1
+ │ │  └─5:PD        scope level: 1
+ │ │   └─6:proc: fact        scope level: 1       proc name: P1       type: P
+ │ └─7:ProcDefs        scope level: 0
+ │  └─8:PD        scope level: 0
+ │   └─9:proc: a        scope level: 0       proc name: a       type: P
+ └─10:Algorithm        scope level: 0
+  └─11:Instr        scope level: 0
+   └─12:PCALL        scope level: 0
+    └─13:proc: factorial        scope level: 0       proc name: U       type: P

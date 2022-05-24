@@ -1,0 +1,24 @@
+main{
+    x["HELLO"] := larger(input(y),and(x,y));
+    z:=20;
+    output:=or(eq(x,y),mult(2,4));
+    if(w)
+    then{
+        if(y)
+        then
+        {
+            call wy;
+        };
+    }
+    else{
+        while(add(3,6))
+        do{
+            do{
+                output:=xyz;
+            }
+            until(wy);
+        };
+    };
+    halt;
+    string char;
+}

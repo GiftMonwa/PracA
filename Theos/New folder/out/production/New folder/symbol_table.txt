@@ -1,0 +1,14 @@
+0:SPL
+1:ProcDefs
+2:PD
+3:proc: factorial
+4:ProcDefs
+5:PD
+6:proc: fact
+7:ProcDefs
+8:PD
+9:proc: a
+10:Algorithm
+11:Instr
+12:PCALL
+13:proc: factorial
